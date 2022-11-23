@@ -1,11 +1,9 @@
 import pandas as pd
 import numpy as np
 import sklearn as skl
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn import metrics
 
 # get data, file has spaces and tabs as separators
 seeds = pd.read_csv("data/seeds_dataset.txt", sep = '\s+|\t| ', 
