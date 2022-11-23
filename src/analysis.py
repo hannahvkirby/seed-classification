@@ -58,28 +58,54 @@ seed_frames = [seeds, seeds_subset_3, seeds_subset_2]
 seed_names = ["All features", "Three features", "Two features"]
 
 # perform knn classification for each seeds subset and k 1-10 inclusive
+neighbors = range(1,21)
 for i,seed in enumerate(seed_frames):
-        neighbors = range(1,11)
         print(seed_names[i])
         for n in neighbors:
                 X_train, X_test, y_train, y_test = train_test_split(seed.iloc[:, :-1], 
                                 seed.iloc[:, -1:], test_size = 0.3, random_state=1)
-
+                
+                # scale features
+                sc.fit(X_train)
+                X_train_std = sc.transform(X_train)
+                X_test_std = sc.transform(X_test)
                 knn = KNeighborsClassifier(n_neighbors=n)
 
                 # fit model on training data
-                knn.fit(X_train, y_train.values.ravel())
+                knn.fit(X_train_std, y_train.values.ravel())
 
                 # predict test values
-                y_pred = knn.predict(X_test)
+                y_pred = knn.predict(X_test_std)
 
                 # compare preds to test data to assess model accuracy
                 print("# neighbors: ", n, "\nAccuracy: ",
                       sum(y_pred == y_test.values.ravel())/len(y_pred), "\n")
 
-# highest test accuracy from these combinations is 0.9365 from 
-# 2 features (groove and perimeter) and 4 neighbors.
+# highest test accuracy from these combinations is 0.98412 from 
+# 3 features (groove, perimeter, area) and 3 or 4 neighbors.
 
+# 98% is pretty good but let's see if another classifier can more accurately fit the data.
+# try random forest decision tree classifier
 
-# 93% is decent but let's see if another classifier can more accurately fit the data.
+for i,seed in enumerate(seed_frames):
+        print(seed_names[i])
+        X_train, X_test, y_train, y_test = train_test_split(seed.iloc[:, :-1], 
+                        seed.iloc[:, -1:], test_size = 0.3, random_state=1)
 
+        forest = RandomForestClassifier(n_estimators=100,
+                                        random_state=1)
+        # fit model on training data
+        forest.fit(X_train, y_train.values.ravel())
+
+        # predict test values
+        y_pred = forest.predict(X_test)
+
+        # compare preds to test data to assess model accuracy
+        print("\nAccuracy: ",
+                sum(y_pred == y_test.values.ravel())/len(y_pred), "\n")
+
+# the highest accuracy we're seeing here is 95.23%, so knn seems to be classifying this data better.
+# random forest classification will likely not be included in the final writeup doc
+
+# quick look at discriminant analysis
+# from summary_stats.py, we know the cov matrix is not equal, so we take a stab at QDA
